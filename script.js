@@ -32,20 +32,17 @@ function drawFrame(index) {
   currentFrame = index;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // object-fit: contain (mostra a imagem toda, sem cortar)
   const imgRatio = img.width / img.height;
   const canvasRatio = canvas.width / canvas.height;
 
   let drawWidth, drawHeight, offsetX, offsetY;
 
   if (canvasRatio > imgRatio) {
-    // canvas mais "largo" → limita pela altura, barras nos lados
     drawHeight = canvas.height;
     drawWidth = canvas.height * imgRatio;
     offsetX = (canvas.width - drawWidth) / 2;
     offsetY = 0;
   } else {
-    // canvas mais "alto" → limita pela largura, barras em cima/baixo
     drawWidth = canvas.width;
     drawHeight = canvas.width / imgRatio;
     offsetX = 0;
@@ -86,6 +83,7 @@ resizeCanvas();
 preloadImages();
 images[0].onload = () => drawFrame(0);
 
+// --- Show more ---
 const showMoreBtn = document.getElementById('showMoreBtn');
 
 showMoreBtn.addEventListener('click', () => {
@@ -93,4 +91,60 @@ showMoreBtn.addEventListener('click', () => {
     el.classList.remove('gallery-hidden');
   });
   showMoreBtn.style.display = 'none';
+});
+
+// --- Lightbox ---
+const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxClose = document.getElementById('lightboxClose');
+const lightboxPrev = document.getElementById('lightboxPrev');
+const lightboxNext = document.getElementById('lightboxNext');
+
+let currentIndex = 0;
+
+function openLightbox(index) {
+  currentIndex = index;
+  lightboxImg.src = galleryItems[currentIndex].src;
+  lightbox.classList.add('active');
+}
+
+function closeLightbox() {
+  lightbox.classList.remove('active');
+}
+
+function changeImage(newIndex) {
+  lightboxImg.classList.add('switching');
+  setTimeout(() => {
+    currentIndex = newIndex;
+    lightboxImg.src = galleryItems[currentIndex].src;
+    lightboxImg.classList.remove('switching');
+  }, 200);
+}
+
+function showNext() {
+  changeImage((currentIndex + 1) % galleryItems.length);
+}
+
+function showPrev() {
+  changeImage((currentIndex - 1 + galleryItems.length) % galleryItems.length);
+}
+
+galleryItems.forEach((item, index) => {
+  item.addEventListener('click', () => openLightbox(index));
+});
+
+lightboxClose.addEventListener('click', closeLightbox);
+lightboxNext.addEventListener('click', showNext);
+lightboxPrev.addEventListener('click', showPrev);
+
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!lightbox.classList.contains('active')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') showNext();
+  if (e.key === 'ArrowLeft') showPrev();
 });

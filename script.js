@@ -148,3 +148,172 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') showNext();
   if (e.key === 'ArrowLeft') showPrev();
 });
+
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabPanels = document.querySelectorAll('.tab-panel');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabPanels.forEach(p => p.classList.remove('active'));
+
+    btn.classList.add('active');
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+  });
+});
+
+const YOUTUBE_API_KEY = 'AIzaSyBeXRiyovoB3U1JYnQYKKkUdwJ0Bm0MPn8';
+const YOUTUBE_HANDLE = '@gearpoststudios';
+
+const SHORT_MAX_SECONDS = 180;
+
+async function youtubeRequest(endpoint, params) {
+    const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
+
+    Object.entries(params).forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+    });
+
+    url.searchParams.set('key', YOUTUBE_API_KEY);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`YouTube API ${response.status}: ${errorText}`);
+    }
+
+    return response.json();
+}
+
+function durationToSeconds(duration) {
+    const match = duration.match(
+        /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/
+    );
+
+    if (!match) return 0;
+
+    const hours = Number(match[1] || 0);
+    const minutes = Number(match[2] || 0);
+    const seconds = Number(match[3] || 0);
+
+    return hours * 3600 + minutes * 60 + seconds;
+}
+
+async function getLatestNormalVideos() {
+    try {
+        const channelData = await youtubeRequest('channels', {
+            part: 'contentDetails',
+            forHandle: YOUTUBE_HANDLE
+        });
+
+        if (!channelData.items?.length) {
+            throw new Error('Channel not found.');
+        }
+
+        const uploadsPlaylistId =
+            channelData.items[0]
+                .contentDetails
+                .relatedPlaylists
+                .uploads;
+
+        const validVideos = [];
+        let nextPageToken = '';
+
+        while (validVideos.length < 2) {
+            const playlistData = await youtubeRequest('playlistItems', {
+                part: 'snippet,contentDetails',
+                playlistId: uploadsPlaylistId,
+                maxResults: 50,
+                ...(nextPageToken ? { pageToken: nextPageToken } : {})
+            });
+
+            const videoIds = playlistData.items
+                .map(item => item.contentDetails?.videoId)
+                .filter(Boolean);
+
+            if (!videoIds.length) break;
+
+            const videoData = await youtubeRequest('videos', {
+                part: 'snippet,contentDetails,liveStreamingDetails,status',
+                id: videoIds.join(',')
+            });
+
+            for (const video of videoData.items) {
+                if (video.liveStreamingDetails) continue;
+
+                const duration = durationToSeconds(
+                    video.contentDetails.duration
+                );
+
+                if (duration <= SHORT_MAX_SECONDS) continue;
+
+                if (video.status?.privacyStatus !== 'public') continue;
+
+                validVideos.push({
+                    id: video.id,
+                    title: video.snippet.title,
+                    description: video.snippet.description,
+                    publishedAt: video.snippet.publishedAt,
+                    thumbnail:
+                        video.snippet.thumbnails.high?.url ||
+                        video.snippet.thumbnails.medium?.url ||
+                        video.snippet.thumbnails.default?.url,
+                    duration
+                });
+
+                if (validVideos.length >= 2) break;
+            }
+
+            nextPageToken = playlistData.nextPageToken || '';
+
+            if (!nextPageToken) break;
+        }
+
+        return validVideos.slice(0, 2);
+
+    } catch (error) {
+        console.error('Failed to get YouTube videos:', error);
+        return [];
+    }
+}
+
+async function displayLatestVideos() {
+    const container = document.getElementById('youtubeVideos');
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <p class="text">Loading videos...</p>
+    `;
+
+    const videos = await getLatestNormalVideos();
+
+    if (!videos.length) {
+        container.innerHTML = `
+            <p class="text">No videos found.</p>
+        `;
+        return;
+    }
+
+    container.innerHTML = '';
+
+    videos.forEach(video => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'youtube-video';
+
+        const iframe = document.createElement('iframe');
+
+        iframe.src = `https://www.youtube.com/embed/${video.id}`;
+        iframe.title = video.title;
+        iframe.loading = 'lazy';
+        iframe.allow =
+            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+
+        wrapper.appendChild(iframe);
+        container.appendChild(wrapper);
+    });
+}
+
+displayLatestVideos();

@@ -146,6 +146,8 @@ html, body {
 }
 
 .lightbox-img {
+  position: relative;
+  z-index: 1001;
   max-width: 90vw;
   max-height: 85vh;
   border: 3px solid #fff;
@@ -179,6 +181,7 @@ html, body {
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1002;
 }
 
 .lightbox-close:hover,
@@ -220,7 +223,79 @@ html, body {
 .lightbox-prev { left: 1.5rem; }
 .lightbox-next { right: 1.5rem; }
 
-.logo {
-  width: 100px;
-  height: auto;
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
 }
+
+.tab-btn {
+  font-family: nocomply;
+  font-size: 20px;
+  background: #000;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  color: #fff;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.youtube-heading {
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+}
+
+.youtube-videos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.youtube-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 4px;
+  background: #000;
+}
+
+.youtube-video iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+}
+
+@media (max-width: 700px) {
+  .youtube-videos {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .youtube-heading {
+    font-size: 32px;
+    margin-top: 2.5rem;
+  }
+}
+

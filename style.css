@@ -28,7 +28,7 @@ html, body {
 }
 
 .text {
-    color: white;
+    color: #f5ffff;
     text-align: center;
     font-family: nocomply;
 }
@@ -56,7 +56,7 @@ html, body {
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border: 3px solid #fff;
+    border: 3px solid #f5ffff;
     border-radius: 4px;
     cursor: pointer;
     transition: transform 0.2s ease;
@@ -78,15 +78,15 @@ html, body {
     margin: 2rem auto 0;
     padding: 0.75rem 2rem;
     background: transparent;
-    border: 2px solid #fff;
-    color: #fff;
+    border: 2px solid #f5ffff;
+    color: #f5ffff;
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
 .show-more-btn:hover {
-    background: #fff;
+    background: #f5ffff;
     color: #000;
 }
 
@@ -104,9 +104,9 @@ html, body {
   gap: 0.5rem;
   padding: 0.6rem 1.2rem;
   background: #000;
-  border: 2px solid #fff;
+  border: 2px solid #f5ffff;
   border-radius: 999px;
-  color: #fff;
+  color: #f5ffff;
   text-decoration: none;
   font-family: nocomply;
   font-size: 20px;
@@ -122,7 +122,7 @@ html, body {
 
 .social-btn:hover,
 .social-btn:active {
-  background: #fff;
+  background: #f5ffff;
   color: #000;
   transform: scale(1.05);
 }
@@ -150,7 +150,7 @@ html, body {
   z-index: 1001;
   max-width: 90vw;
   max-height: 85vh;
-  border: 3px solid #fff;
+  border: 3px solid #f5ffff;
   border-radius: 4px;
   transform: scale(0.85);
   opacity: 0;
@@ -177,7 +177,7 @@ html, body {
   background: #000000;
   backdrop-filter: blur(6px);
   border: 2px;
-  color: #fff;
+  color: #f5ffff;
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -188,10 +188,10 @@ html, body {
 .lightbox-close:active,
 .lightbox-arrow:hover,
 .lightbox-arrow:active {
-  background: #fff;
+  background: #f5ffff;
   color: #000;
   transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(245, 255, 255, 0.4);
 }
 
 .lightbox-close {
@@ -234,9 +234,9 @@ html, body {
   font-family: nocomply;
   font-size: 20px;
   background: #000;
-  border: 2px solid #fff;
+  border: 2px solid #f5ffff;
   border-radius: 4px;
-  color: #fff;
+  color: #f5ffff;
   padding: 0.5rem 1.5rem;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
@@ -244,7 +244,7 @@ html, body {
 
 .tab-btn.active,
 .tab-btn:hover {
-  background: #fff;
+  background: #f5ffff;
   color: #000;
 }
 
@@ -275,7 +275,7 @@ html, body {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: 3px solid #fff;
+  border: 3px solid #f5ffff;
   border-radius: 4px;
   background: #000;
 }
@@ -305,7 +305,7 @@ html, body {
   height: 40%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: 3px solid #fff;
+  border: 3px solid #f5ffff;
   border-radius: 4px;
   background: #000;
 }

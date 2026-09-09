@@ -219,3 +219,8 @@ html, body {
 
 .lightbox-prev { left: 1.5rem; }
 .lightbox-next { right: 1.5rem; }
+
+.logo {
+  width: 100px;
+  height: auto;
+}

@@ -1,7 +1,7 @@
 const canvas = document.getElementById('frameCanvas');
 const ctx = canvas.getContext('2d');
 const section = document.querySelector('.intro');
-const totalFrames = 216;
+const totalFrames = 125;
 const images = [];
 
 let ticking = false;

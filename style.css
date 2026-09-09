@@ -299,3 +299,22 @@ html, body {
   }
 }
 
+.teaser-vid {
+  position: relative;
+  width: 40%;
+  height: 40%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 4px;
+  background: #000;
+}
+
+.teaser-div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0 1rem 2rem;
+}

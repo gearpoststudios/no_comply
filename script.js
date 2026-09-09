@@ -165,8 +165,6 @@ tabBtns.forEach(btn => {
 const YOUTUBE_API_KEY = 'AIzaSyBeXRiyovoB3U1JYnQYKKkUdwJ0Bm0MPn8';
 const YOUTUBE_HANDLE = '@gearpoststudios';
 
-const SHORT_MAX_SECONDS = 180;
-
 async function youtubeRequest(endpoint, params) {
     const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
 
@@ -179,8 +177,7 @@ async function youtubeRequest(endpoint, params) {
     const response = await fetch(url);
 
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`YouTube API ${response.status}: ${errorText}`);
+        throw new Error(`YouTube API error: ${response.status}`);
     }
 
     return response.json();
@@ -193,89 +190,87 @@ function durationToSeconds(duration) {
 
     if (!match) return 0;
 
-    const hours = Number(match[1] || 0);
-    const minutes = Number(match[2] || 0);
-    const seconds = Number(match[3] || 0);
-
-    return hours * 3600 + minutes * 60 + seconds;
+    return (
+        Number(match[1] || 0) * 3600 +
+        Number(match[2] || 0) * 60 +
+        Number(match[3] || 0)
+    );
 }
 
-async function getLatestNormalVideos() {
-    try {
-        const channelData = await youtubeRequest('channels', {
+async function getLatestVideos() {
+    const channel = await youtubeRequest('channels', {
+        part: 'contentDetails',
+        forHandle: YOUTUBE_HANDLE
+    });
+
+    if (!channel.items?.length) {
+        throw new Error('Channel not found');
+    }
+
+    const uploadsPlaylist =
+        channel.items[0].contentDetails.relatedPlaylists.uploads;
+
+    const videos = [];
+    let pageToken = '';
+
+    while (videos.length < 2) {
+        const playlist = await youtubeRequest('playlistItems', {
             part: 'contentDetails',
-            forHandle: YOUTUBE_HANDLE
+            playlistId: uploadsPlaylist,
+            maxResults: 50,
+            ...(pageToken ? { pageToken } : {})
         });
 
-        if (!channelData.items?.length) {
-            throw new Error('Channel not found.');
-        }
+        const ids = playlist.items
+            .map(item => item.contentDetails.videoId)
+            .filter(Boolean);
 
-        const uploadsPlaylistId =
-            channelData.items[0]
-                .contentDetails
-                .relatedPlaylists
-                .uploads;
+        if (!ids.length) break;
 
-        const validVideos = [];
-        let nextPageToken = '';
+        const details = await youtubeRequest('videos', {
+            part: 'snippet,contentDetails,liveStreamingDetails,status',
+            id: ids.join(',')
+        });
 
-        while (validVideos.length < 2) {
-            const playlistData = await youtubeRequest('playlistItems', {
-                part: 'snippet,contentDetails',
-                playlistId: uploadsPlaylistId,
-                maxResults: 50,
-                ...(nextPageToken ? { pageToken: nextPageToken } : {})
+        const detailsById = new Map(
+            details.items.map(video => [video.id, video])
+        );
+
+        for (const item of playlist.items) {
+            const video = detailsById.get(item.contentDetails.videoId);
+
+            if (!video) continue;
+
+            if (video.status.privacyStatus !== 'public') continue;
+
+            if (video.liveStreamingDetails) continue;
+
+            const duration = durationToSeconds(
+                video.contentDetails.duration
+            );
+
+            if (duration < 60) continue;
+
+            videos.push({
+                id: video.id,
+                title: video.snippet.title,
+                publishedAt: video.snippet.publishedAt,
+                thumbnail:
+                    video.snippet.thumbnails.maxres?.url ||
+                    video.snippet.thumbnails.high?.url ||
+                    video.snippet.thumbnails.medium?.url ||
+                    video.snippet.thumbnails.default?.url
             });
 
-            const videoIds = playlistData.items
-                .map(item => item.contentDetails?.videoId)
-                .filter(Boolean);
-
-            if (!videoIds.length) break;
-
-            const videoData = await youtubeRequest('videos', {
-                part: 'snippet,contentDetails,liveStreamingDetails,status',
-                id: videoIds.join(',')
-            });
-
-            for (const video of videoData.items) {
-                if (video.liveStreamingDetails) continue;
-
-                const duration = durationToSeconds(
-                    video.contentDetails.duration
-                );
-
-                if (duration <= SHORT_MAX_SECONDS) continue;
-
-                if (video.status?.privacyStatus !== 'public') continue;
-
-                validVideos.push({
-                    id: video.id,
-                    title: video.snippet.title,
-                    description: video.snippet.description,
-                    publishedAt: video.snippet.publishedAt,
-                    thumbnail:
-                        video.snippet.thumbnails.high?.url ||
-                        video.snippet.thumbnails.medium?.url ||
-                        video.snippet.thumbnails.default?.url,
-                    duration
-                });
-
-                if (validVideos.length >= 2) break;
-            }
-
-            nextPageToken = playlistData.nextPageToken || '';
-
-            if (!nextPageToken) break;
+            if (videos.length === 2) break;
         }
 
-        return validVideos.slice(0, 2);
+        pageToken = playlist.nextPageToken || '';
 
-    } catch (error) {
-        console.error('Failed to get YouTube videos:', error);
-        return [];
+        if (!pageToken) break;
     }
+
+    return videos;
 }
 
 async function displayLatestVideos() {
@@ -283,37 +278,32 @@ async function displayLatestVideos() {
 
     if (!container) return;
 
-    container.innerHTML = `
-        <p class="text">Loading videos...</p>
-    `;
+    try {
+        const videos = await getLatestVideos();
 
-    const videos = await getLatestNormalVideos();
+        container.innerHTML = '';
 
-    if (!videos.length) {
-        container.innerHTML = `
-            <p class="text">No videos found.</p>
-        `;
-        return;
+        for (const video of videos) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'youtube-video';
+
+            const iframe = document.createElement('iframe');
+
+            iframe.src = `https://www.youtube.com/embed/${video.id}`;
+            iframe.title = video.title;
+            iframe.loading = 'lazy';
+            iframe.allow =
+                'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+
+            wrapper.appendChild(iframe);
+            container.appendChild(wrapper);
+        }
+    } catch (error) {
+        console.error(error);
+        container.innerHTML =
+            '<p class="text">Unable to load videos.</p>';
     }
-
-    container.innerHTML = '';
-
-    videos.forEach(video => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'youtube-video';
-
-        const iframe = document.createElement('iframe');
-
-        iframe.src = `https://www.youtube.com/embed/${video.id}`;
-        iframe.title = video.title;
-        iframe.loading = 'lazy';
-        iframe.allow =
-            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        iframe.allowFullscreen = true;
-
-        wrapper.appendChild(iframe);
-        container.appendChild(wrapper);
-    });
 }
 
 displayLatestVideos();

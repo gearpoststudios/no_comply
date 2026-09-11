@@ -329,7 +329,15 @@ html, body {
 .steam-cta {
   display: flex;
   justify-content: center;
-  padding: 3rem 1rem;
+  width: min(100%, 400px); /* Comprimento aumentado de 360px para 400px */
+  padding: 0 1rem;
+}
+
+#tab-game.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .steam-btn {
@@ -337,8 +345,9 @@ html, body {
   align-items: center;
   gap: 1.25rem;
   padding: 1.5rem 3rem;
+  width: 100%;
   background: #000;
-  border: 3px solid #f5ffff;
+  border: 2px solid #f5ffff;
   border-radius: 8px;
   color: #f5ffff;
   opacity: 0.85;
@@ -381,4 +390,56 @@ html, body {
   background: #000;
   color: #f5ffff;
   transform: none;
+}
+
+.itch-btn {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-family: nocomply;
+  white-space: nowrap;
+  background: #000;
+  border: 2px solid #f5ffff;
+  border-radius: 8px; /* Igualado ao botão do Steam (8px) */
+  color: #f5ffff;
+  padding: 1.5rem 3rem; /* Padding igualado ao botão do Steam */
+  text-decoration: none;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.itch-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem; /* Gap igualado ao botão do Steam */
+}
+
+.itch-btn-title {
+  font-family: nocomply;
+  font-size: 28px; /* Tamanho do texto igualado ao Steam */
+}
+
+.itch-btn-badge {
+  font-family: nocomply;
+  font-size: 15px; /* Tamanho igualado ao Steam */
+  opacity: 0.75;
+  letter-spacing: 0.05em;
+  text-transform: uppercase; /* Transformação para maiúsculas (Coming Soon) adicionada */
+}
+
+.itch-cta {
+  display: flex;
+  justify-content: center;
+  width: min(100%, 400px); /* Comprimento aumentado de 360px para 400px */
+  padding: 0 1rem;
+}
+
+.itch-icon {
+  width: 3rem;
+  height: 3rem;
+  fill: #ffff;
+  flex-shrink: 0;
 }
